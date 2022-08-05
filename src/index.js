@@ -8,14 +8,22 @@
  *
  * @returns string[]
  */
-export const getKeysByDescriptor = (object, descriptor) => {};
+export const getKeysByDescriptor = (object, descriptor) => {
+  return Object.entries(Object.getOwnPropertyDescriptors(object))
+    .filter(([, value]) => {
+      return value[descriptor];
+    })
+    .map(([key]) => key);
+};
 
 /**
  * Должен вернуть true если объект был заморожен каким-либо методом заморозки freeze, seal, preventExtensions иначе false
  * @param {Object} object
  * @returns {boolean}
  */
-export const isObjectAnyFrozen = (object) => {};
+export const isObjectAnyFrozen = (object) => {
+  return Object.isFrozen(object);
+};
 
 /**
  * Принимает объект и строку. Мы должны вернуть НОВЫЙ объект(копию оригинального), в котором
@@ -27,7 +35,23 @@ export const isObjectAnyFrozen = (object) => {};
  *
  * @returns {Object}
  */
-export const assignLockedValues = (object, propertyName) => {};
+export const assignLockedValues = (object, propertyName) => {
+  const newObj = { ...object };
+  if (propertyName in newObj) {
+    Object.defineProperty(newObj, propertyName, {
+      writable: false,
+      value: newObj[propertyName]
+    });
+  } else {
+    Object.defineProperty(newObj, propertyName, {
+      value: null,
+      writable: false,
+      enumerable: true,
+      configurable: true
+    });
+  }
+  return newObj;
+};
 
 /**
  * Принимает объект и возвращает его копию, только абсолютно замороженную
@@ -35,4 +59,7 @@ export const assignLockedValues = (object, propertyName) => {};
  * @param {Object} object
  * @returns {Object}
  */
-export const freezeAllInObject = (object) => {};
+export const freezeAllInObject = (object) => {
+  const newObj = { ...object };
+  return Object.freeze(newObj);
+};
